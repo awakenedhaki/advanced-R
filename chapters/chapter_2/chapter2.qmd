@@ -174,7 +174,7 @@ If there had been only one pointer for the vector object, the copy would not hav
 
 # 2.5.3
 
-1.  Explain why the following code doesn\'t create a circular list.
+1.  Explain why the following code doesn't create a circular list.
 
 ```{r}
 x <- list()
@@ -272,11 +272,11 @@ tidyr::pivot_longer(data = summarized_results,
 
 As the number of columns increases from 1 to 500, the process (i.e. CPU) and real time to completion worsens for the `data.frame` data structure.
 
-The time to completion for the `data.frame` increases approximately linearly, with a slight upwards concave. There are observations across the sample column sizes that performed worse than what the overall trend would suggest. The reason for these outlier observations is unknown. 
+The time to completion for the `data.frame` increases approximately linearly, with a slight upwards concave. There are observations across the sample column sizes that performed worse than what the overall trend would suggest. The reason for these outlier observations is unknown.
 
-The time to completion for the `list` data structure remains approximately constant. 
+The time to completion for the `list` data structure remains approximately constant.
 
-3. What happens if you attempt to use tracemem() on an environment?
+3.  What happens if you attempt to use tracemem() on an environment?
 
 ```{r}
 e <- environment()
