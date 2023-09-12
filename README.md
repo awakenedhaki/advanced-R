@@ -6,4 +6,6 @@ This repository contains my solutions for the exercises in the [Advanced R](http
 
 | Chapter | Exercise | Question | Solution                                                                                                                                                       |
 |---------|----------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 14      | 14.2.6   | 1        | [Strategy Design Pattern Solution](https://github.com/awakenedhaki/advanced-r/tree/7648e533aa06f4d4eb4148b8ff3da21a335b3e16/chapters/chapter_14/bank_accounts) |
+| 2       | All      | All      | [Bundled Solution](https://github.com/awakenedhaki/advanced-R/tree/main/chapters/chapter_2) |
+| 14      | 14.2.6   | 1        | [Strategy Design Pattern Solution](https://github.com/awakenedhaki/advanced-R/tree/main/chapters/chapter_14/bank_accounts) |
+| 14      | 14.2.6   | 2        | [Factory Design Pattern Solution](https://github.com/awakenedhaki/advanced-R/tree/main/chapters/chapter_14/card_deck) |
