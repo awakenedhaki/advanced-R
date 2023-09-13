@@ -10,11 +10,6 @@
 #' It provides a basic framework for implementing custom withdrawal strategies for bank accounts.
 #' Subclasses can inherit from this abstract class and implement their specific withdrawal logic.
 #'
-#' @section Fields:
-#' \describe{
-#'   \item{\code{fee}}{A numeric value representing the fee associated with the withdrawal strategy (initialized as NA).}
-#' }
-#'
 #' @section Methods:
 #' The `AbstractWithdrawalStrategy` class provides the following methods:
 #' \describe{
@@ -37,8 +32,6 @@ AbstractWithdrawalStrategy <- R6::R6Class(
   classname = "AbstractWithdrawalStrategy",
   
   public = list(
-    fee = NA_real_,
-    
     #' Withdraw funds from the account using the strategy's logic.
     #' 
     #' @param account An object representing the bank account from which to withdraw funds.
