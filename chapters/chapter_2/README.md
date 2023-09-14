@@ -1,0 +1,417 @@
+# Chapter 2 Exercises
+
+# 2.2.2
+
+1.  Explain the relationship between `a`, `b`, `c` and `d` in the
+    following code:
+
+``` r
+a <- 1:10
+b <- a
+c <- b
+d <- 1:10
+```
+
+The named variable `a` contains a reference to the `1:10` vector object.
+The reference to the vector object is then passed on to named variable
+`b`. The variables `a` and `b` are pointing to the same memory address.
+The same logic applies when assigning `b` to `c`. Therefore, `a`, `b`
+and `c` are all pointing to the same object in memory.
+
+The named variable `d` is assigned a new `1:10` vector object that will
+have a location in memory independent of the vector object assigned to
+`a`, `b` and `c`.
+
+2.  The following code accesses the mean function in multiple ways. Do
+    they all point to the same underlying function object? Verify this
+    with `lobstr::obj_addr()`.
+
+``` r
+mean
+base::mean
+get("mean")
+evalq(mean)
+match.fun("mean")
+```
+
+All lines in the above code point to the same function. Each line is a
+different method of retrieving the function `mean` from memory.
+
+3.  By default, base R data import functions, like `read.csv()`, will
+    automatically convert non-syntactic names to syntactic ones. Why
+    might this be problematic? What option allows you to suppress this
+    behaviour?
+
+The function `read.csv` will implicitly change non-syntactic column
+names into syntactic ones. The issues associated with a change in column
+name may include:
+
+- A loss of data integrity by deviating from the data documentation. The
+  naming scheme for the loaded data set may not be aligned with R
+  syntax, but still hold semantic meaning to the custodian of the data
+  set.
+
+- Introducing incompatibility with associated data sets. The loaded data
+  set may be one component of a larger data architecture. A change in
+  column name will introduce compatibility issues with related data sets
+  if the column names.
+
+4.  What rules does `make.names` use to convert non-syntactic names into
+    syntactic ones?
+
+- Replacing invalid characters (ex. space, /, :, etc.) with a period
+  (“.”).
+
+- If the name begins with a numeric character, the name will be prefixed
+  with an “X”.
+
+- If the name begins with an invalid character, it will be prefixed with
+  “X.”.
+
+5.  I slightly simplified the rules that govern syntactic names. Why is
+    `.123e1` not a syntactic name? Read
+    [`?make.names`](https://rdrr.io/r/base/make.names.html) for the full
+    details.
+
+The name `.123e1` is valid representation of the double `1.23` in
+scientific notation.
+
+# 2.3.6
+
+1.  Why is `tracemem(1:10)` not useful?
+
+The function call `tracemem(1:10)` is creating a new vector object that
+contains the values 1 through 10. The `tracemem` function will report
+any time the parameterized object is copied.
+
+The `1:10` vector object is assigned a place in memory, however there is
+no named variable that contains the memory address for the object.
+Therefore, the `1:10` vector object will not be accessible after its
+creation. If the object is not accessible after its creation, it cannot
+be subjected to operations that would have led it to be copied.
+
+2.  Explain why `tracemem` shows two copies when you run this code.
+    Hint: carefully look at the difference between this code and the
+    code shown earlier in the section.
+
+``` r
+x <- c(1L, 2L, 3L)
+tracemem(x)
+```
+
+    [1] "<0x12b2f3a88>"
+
+``` r
+x[[3]] <- 4
+```
+
+    tracemem[0x12b2f3a88 -> 0x12b2df648]: eval eval eval_with_user_handlers withVisible withCallingHandlers handle timing_fn evaluate_call <Anonymous> evaluate in_dir in_input_dir eng_r block_exec call_block process_group.block process_group withCallingHandlers withCallingHandlers process_file <Anonymous> <Anonymous> execute .main 
+    tracemem[0x12b2df648 -> 0x1046795e8]: eval eval eval_with_user_handlers withVisible withCallingHandlers handle timing_fn evaluate_call <Anonymous> evaluate in_dir in_input_dir eng_r block_exec call_block process_group.block process_group withCallingHandlers withCallingHandlers process_file <Anonymous> <Anonymous> execute .main 
+
+The code above is create a integer vector contains. The `x[[3]] <- 4`
+operation is replacing the third element in the integer vector with a
+double value of `4`. The vector will first have to be coerced from
+integer to double vector. Once the vector is coerced into the correct
+data type, the third element can be replaced with the double value of
+`4`.
+
+3.  Sketch out the relationship between the following objects:
+
+``` r
+a <- 1:10
+b <- list(a, a)
+c <- list(b, a, 1:10)
+```
+
+``` mermaid
+graph TD
+    B --&gt; A
+    B --&gt; A
+    C --&gt; B
+    C --&gt; A
+    C --&gt; 1:10
+```
+
+4.  What happens when you run this code?
+
+``` r
+x <- list(1:10)
+x[[2]] <- x
+```
+
+In the above code, a list contains a vector object is created in the
+first line. The named variable `x` points to the list in memory.
+
+The second line is adding a new entry into the list as index `2`. The
+named variable `x` is being assigned to the second position of the list.
+Therefore, the list becomes self-referential.
+
+A new memory address is created for the second position of the index.
+That new memory address simply points to the values stored in the first
+position of the list.
+
+# 2.4.1
+
+1.  In the following example, why are
+    [`object.size(y)`](https://rdrr.io/r/utils/object.size.html) and
+    [`obj_size(y)`](https://rdrr.io/pkg/lobstr/man/obj_size.html) so
+    radically different? Consult the documentation of `object.size`.
+
+``` r
+y <- rep(list(runif(1e4)), 100)
+
+object.size(y)
+```
+
+    8005648 bytes
+
+``` r
+#> 8005648 bytes
+lobstr::obj_size(y)
+```
+
+    80.90 kB
+
+``` r
+#> 80,896 B
+```
+
+The variable `y` is a list that contains 100 references to the same
+vector object, which in turn holds 1,000 double values. The
+`object.size` calculates the space allocated without taking into account
+that each element in the variable `y` is pointing to the same, shared,
+object. The `lobstr::obj_size` calculates the space allocated, taking
+into consideration that there are multiple pointers to the same object.
+
+2.  Take the following list. Why is its size somewhat misleading?
+
+``` r
+funs <- list(mean, sd, var)
+lobstr::obj_size(funs)
+```
+
+    17.55 kB
+
+``` r
+#> 17,608 B
+```
+
+The functions `mean`, `sd`, and `var` are all functions contained with
+the `base` or `stats` namespace.
+
+The `mean` function is a generic method for an S3 object. The memory
+being reported by `lobstr::obj_size` is only that of the dispatcher
+contained within the `mean` generic method. If we inspect the size of
+the `mean.default` generic method using the `lobstr::obj_size` function,
+the result is `19.63 kB`.
+
+In the case of `sd`, it makes a call to `var`. Without the `var`
+function, `sd` would not work. The memory of `sd` is less than `var`,
+indicating the `lobstr::obj_size` is taking into count nested function
+calls. The same logic applies for `var`, even though it contains the
+greatest object size.
+
+3.  Predict the output of the following code:
+
+``` r
+a <- runif(1e6)
+lobstr::obj_size(a)
+```
+
+    8.00 MB
+
+``` r
+b <- list(a, a)
+lobstr::obj_size(b)
+```
+
+    8.00 MB
+
+``` r
+lobstr::obj_size(a, b)
+```
+
+    8.00 MB
+
+The objects referenced by `a` and `b` will be of similar sizes.
+
+The variable `a` references a vector object. The variable `b` then
+creates a list the contains two pointers to the vector object references
+by `a`. The object referenced by `b` will be marginally large in size
+than the vector object contained in `a` only because of the overhead
+granted by the `list`.
+
+``` r
+b[[1]][[1]] <- 10
+lobstr::obj_size(b)
+```
+
+    16.00 MB
+
+``` r
+lobstr::obj_size(a, b)
+```
+
+    16.00 MB
+
+The variable `b` is a list of two pointers, referencing the same vector
+object. The vector object is being accessed via the first pointer in the
+list. Afterwards, the first value of the vector object is being modified
+from a random numeric value outputted by `runif` to `10`. When the first
+value of the vector object is modified, this triggers the vector object
+to first be copied, and then updated.
+
+The list referenced by `b` will then contain two distinct vector
+objects, with their own memory addresses.
+
+Therefore, the amount of memory will double.
+
+``` r
+b[[2]][[1]] <- 10
+lobstr::obj_size(b)
+```
+
+    16.00 MB
+
+``` r
+lobstr::obj_size(a, b)
+```
+
+    24.00 MB
+
+The same operation is being performed as was discussed in the previous
+code chunk. However, the value being modified is now the first value of
+the second vector object in the list referenced by `b`.
+
+The second element of the list referenced by `b` is a vector object with
+two pointers. The first pointer is from the initial creation of the
+vector object assigned to the variable `a`. The second pointer is the
+one contained with the second index of the list.
+
+A modification the second element in the list referenced by `b` will
+trigger a copy of the vector to created.
+
+If there had been only one pointer for the vector object, the copy would
+not have been triggered.
+
+# 2.5.3
+
+1.  Explain why the following code doesn’t create a circular list.
+
+``` r
+x <- list()
+x[[1]] <- x
+```
+
+When when the variable `x` is assigned to the first element of the list
+referenced by variable `x`, a copy of the list is triggered.
+
+The memory address of the original list is stored within the first
+element of the list. The variable `x` now contains the memory address
+for a new list.
+
+2.  Wrap the two methods for subtracting medians into two functions,
+    then use the `bench` package to carefully compare their speeds. How
+    does performance change as the number of columns increase?
+
+``` r
+preallocate_list <- function(size) {
+  lst <- vector("list", size)
+  return(lst)
+}
+
+build_data_frame <- function(ncol) {
+  
+  set.seed(123)
+  data.frame(matrix(runif(5 * 1e4), ncol = ncol))
+}
+
+as_data_frame <- function(lst) {
+  df <- data.frame(matrix(unlist(lst), 
+                          nrow = length(lst), 
+                          byrow=TRUE))
+  colnames(df) <- c("data_type", "repeat", "ncol", "process", "real")
+  
+  df$process <- as.double(df$process)
+  df$real <- as.double(df$real)
+  df$ncol <- as.double(df$ncol)
+  
+  return(df)
+}
+
+bench_mark_median_subtraction <- function(reps, ncols) {
+  results <- preallocate_list(reps * ncols * 2)
+  
+  for (ncol in 1:ncols) {
+    for (rep in 1:reps) {
+      data <- build_data_frame(ncol = ncol)
+      medians <- vapply(data, median, numeric(1))
+      
+      df_result <- bench::bench_time({
+        operation_on_data_frames(data, medians)
+      })
+      
+      list_result <- bench::bench_time({
+        operation_on_list(as.list(data), medians)
+      })
+      
+      results[[rep + (ncol - 1) * reps * 2 + 1]] <- 
+        c("Data Frame", rep, ncol, df_result)
+      
+      results[[rep + (ncol - 1) * reps * 2 + reps + 1]] <- 
+        c("List", rep, ncol, list_result)
+    }
+  }
+  
+  return(as_data_frame(results))
+}
+
+operation_on_data_frames <- function(df, medians) {
+  for (i in seq_along(medians)) {
+    df[[i]] <- df[[i]] - medians[[i]]
+  }
+}
+
+operation_on_list <- function(lst, medians) {
+  for (i in length(lst)) {
+    lst[[i]] <- lst[[i]] - medians[[i]]
+  }
+}
+
+
+bench_marks <- bench_mark_median_subtraction(reps = 6, ncols = 500)
+
+summarized_results <- aggregate(cbind(process, real) ~ data_type + ncol, 
+                                data = bench_marks, 
+                                FUN = mean)
+
+
+tidyr::pivot_longer(data = summarized_results,
+                    cols = c(process, real),
+                    names_to = "measurement_type",
+                    values_to = "time") |>
+  ggplot2::ggplot(ggplot2::aes(x = ncol, y = time)) +
+  ggplot2::geom_point(ggplot2::aes(color = data_type), size = 1) +
+  ggplot2::facet_grid(measurement_type ~ data_type) +
+  ggplot2::labs(x = "Number of Column", y = "Time (seconds)", 
+                color = "Data Type") +
+  ggplot2::theme_light() +
+  ggplot2::theme(panel.grid.major = ggplot2::element_blank())
+```
+
+![](chapter2_files/figure-commonmark/unnamed-chunk-12-1.png)
+
+As the number of columns increases from 1 to 500, the process (i.e. CPU)
+and real time to completion worsens for the `data.frame` data structure.
+
+The time to completion for the `data.frame` increases approximately
+linearly, with a slight upwards concave. There are observations across
+the sample column sizes that performed worse than what the overall trend
+would suggest. The reason for these outlier observations is unknown.
+
+The time to completion for the `list` data structure remains
+approximately constant.
+
+3.  What happens if you attempt to use tracemem() on an environment?
+
+R throws an error when `tracemem` is called on an environment.

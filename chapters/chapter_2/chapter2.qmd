@@ -1,6 +1,6 @@
 ---
 title: "Chapter 2 Exercises"
-format: html
+format: gfm
 editor: visual
 editor_options: 
   chunk_output_type: console
@@ -23,7 +23,7 @@ The named variable `d` is assigned a new `1:10` vector object that will have a l
 
 2.  The following code accesses the mean function in multiple ways. Do they all point to the same underlying function object? Verify this with `lobstr::obj_addr()`.
 
-```{r}
+```r
 mean
 base::mean
 get("mean")
@@ -187,27 +187,29 @@ The memory address of the original list is stored within the first element of th
 
 2.  Wrap the two methods for subtracting medians into two functions, then use the `bench` package to carefully compare their speeds. How does performance change as the number of columns increase?
 
-```{r}
+```{r warning=FALSE}
 preallocate_list <- function(size) {
   lst <- vector("list", size)
   return(lst)
 }
 
 build_data_frame <- function(ncol) {
-    data.frame(matrix(runif(5 * 1e4), ncol = ncol))
+  
+  set.seed(123)
+  data.frame(matrix(runif(5 * 1e4), ncol = ncol))
 }
 
 as_data_frame <- function(lst) {
-    df <- data.frame(matrix(unlist(lst), 
-                            nrow = length(lst), 
-                            byrow=TRUE))
-    colnames(df) <- c("data_type", "repeat", "ncol", "process", "real")
-    
-    df$process <- as.double(df$process)
-    df$real <- as.double(df$real)
-    df$ncol <- as.double(df$ncol)
-    
-    return(df)
+  df <- data.frame(matrix(unlist(lst), 
+                          nrow = length(lst), 
+                          byrow=TRUE))
+  colnames(df) <- c("data_type", "repeat", "ncol", "process", "real")
+  
+  df$process <- as.double(df$process)
+  df$real <- as.double(df$real)
+  df$ncol <- as.double(df$ncol)
+  
+  return(df)
 }
 
 bench_mark_median_subtraction <- function(reps, ncols) {
@@ -227,10 +229,10 @@ bench_mark_median_subtraction <- function(reps, ncols) {
       })
       
       results[[rep + (ncol - 1) * reps * 2 + 1]] <- 
-          c("Data Frame", rep, ncol, df_result)
+        c("Data Frame", rep, ncol, df_result)
       
       results[[rep + (ncol - 1) * reps * 2 + reps + 1]] <- 
-          c("List", rep, ncol, list_result)
+        c("List", rep, ncol, list_result)
     }
   }
   
@@ -261,13 +263,13 @@ tidyr::pivot_longer(data = summarized_results,
                     cols = c(process, real),
                     names_to = "measurement_type",
                     values_to = "time") |>
-    ggplot2::ggplot(ggplot2::aes(x = ncol, y = time)) +
-        ggplot2::geom_point(ggplot2::aes(color = data_type), size = 1) +
-        ggplot2::facet_grid(measurement_type ~ data_type) +
-        ggplot2::labs(x = "Number of Column", y = "Time (seconds)", 
-                      color = "Data Type") +
-        ggplot2::theme_light() +
-        ggplot2::theme(panel.grid.major = ggplot2::element_blank())
+  ggplot2::ggplot(ggplot2::aes(x = ncol, y = time)) +
+  ggplot2::geom_point(ggplot2::aes(color = data_type), size = 1) +
+  ggplot2::facet_grid(measurement_type ~ data_type) +
+  ggplot2::labs(x = "Number of Column", y = "Time (seconds)", 
+                color = "Data Type") +
+  ggplot2::theme_light() +
+  ggplot2::theme(panel.grid.major = ggplot2::element_blank())
 ```
 
 As the number of columns increases from 1 to 500, the process (i.e. CPU) and real time to completion worsens for the `data.frame` data structure.
@@ -277,10 +279,5 @@ The time to completion for the `data.frame` increases approximately linearly, wi
 The time to completion for the `list` data structure remains approximately constant.
 
 3.  What happens if you attempt to use tracemem() on an environment?
-
-```{r}
-e <- environment()
-tracemem(e)
-```
 
 R throws an error when `tracemem` is called on an environment.
